@@ -59,9 +59,15 @@ public class InsertionSort<X extends Comparable<X>> extends SortWithHelper<X> {
         final Helper<X> helper = getHelper();
 
         // FIXME
-        // END 
+        for(int temp = from + 1; temp < to; temp++){
+            for(int k = temp; k >= from + 1; k--){
+                if(helper.compare(xs[k], xs[k - 1]) >= 0) {
+                    break;
+                }
+                helper.swap(xs,k - 1, k);
+            }
+        }
     }
-
     public static final String DESCRIPTION = "Insertion sort";
 
     public static <T extends Comparable<T>> void sort(T[] ts) {

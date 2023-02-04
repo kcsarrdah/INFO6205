@@ -5,20 +5,20 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+/**
+ * Class which is able to time the running of functions.
+ */
 public class Timer {
 
     /**
-     * Construct a new Timer and set it running.
-     */
-    public Timer() {
-        resume();
-    }
-
-    /**
-     * Run the given function n times, once per "lap" and then return the result of calling stop().
+     * Run the given function n times, once per "lap" and then return the result of calling meanLapTime().
+     * The clock will be running when the method is invoked and when it is quit.
+     *
+     * This is the simplest form of repeat.
      *
      * @param n        the number of repetitions.
-     * @param function a function which yields a T (T may be Void).
+     * @param function a function which yields a T.
+     * @param <T> the type supplied by function (amy be Void).
      * @return the average milliseconds per repetition.
      */
     public <T> double repeat(int n, Supplier<T> function) {
@@ -33,11 +33,13 @@ public class Timer {
     }
 
     /**
-     * Run the given functions n times, once per "lap" and then return the result of calling stop().
+     * Run the given functions n times, once per "lap" and then return the mean lap time.
      *
      * @param n        the number of repetitions.
      * @param supplier a function which supplies a different T value for each repetition.
-     * @param function a function T=>U and which is to be timed (U may be Void).
+     * @param function a function T=>U and which is to be timed.
+     * @param <T> the type which is supplied by supplier and passed in to function.
+     * @param <U> the type which is the result of <code>function</code> (may be Void).
      * @return the average milliseconds per repetition.
      */
     public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function) {
@@ -50,15 +52,41 @@ public class Timer {
      * @param n            the number of repetitions.
      * @param supplier     a function which supplies a T value.
      * @param function     a function T=>U and which is to be timed.
-     * @param preFunction  a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null).
+     * @param preFunction  a function which pre-processes a T value and which precedes the call of function, but which is not timed (may be null). The result of the preFunction, if any, is also a T.
      * @param postFunction a function which consumes a U and which succeeds the call of function, but which is not timed (may be null).
+     * @param <T> the type which is supplied by supplier, processed by prefunction (if any), and passed in to function.
+     * @param <U> the type which is the result of function and the input to postFunction (if any).
      * @return the average milliseconds per repetition.
      */
     public <T, U> double repeat(int n, Supplier<T> supplier, Function<T, U> function, UnaryOperator<T> preFunction, Consumer<U> postFunction) {
         logger.trace("repeat: with " + n + " runs");
         // FIXME: note that the timer is running when this method is called and should still be running when it returns. by replacing the following code
-         return 0;
-        // END 
+        if(preFunction == null && postFunction == null){
+            for (int i = 0; i < n; i++) {
+                function.apply(supplier.get());
+                lap();
+            }
+            pause();
+        }else{
+            pause();
+            for (int j = 0; j < n; j++) {
+                T t = supplier.get();
+                if(preFunction != null){
+                    t = preFunction.apply(t);
+                }
+                if(postFunction != null){
+                    resume();
+                    U u = function.apply(t);
+                    pauseAndLap();
+                    postFunction.accept(u);
+                }else{
+                    resume();
+                    function.apply(t);
+                    pauseAndLap();
+                }
+            }
+        }
+        return meanLapTime();
     }
 
     /**
@@ -148,6 +176,13 @@ public class Timer {
                 '}';
     }
 
+    /**
+     * Construct a new Timer and set it running.
+     */
+    public Timer() {
+        resume();
+    }
+
     private long ticks = 0L;
     private int laps = 0;
     private boolean running = false;
@@ -177,8 +212,7 @@ public class Timer {
      */
     private static long getClock() {
         // FIXME by replacing the following code
-         return 0;
-        // END 
+        return System.nanoTime();
     }
 
     /**
@@ -190,8 +224,7 @@ public class Timer {
      */
     private static double toMillisecs(long ticks) {
         // FIXME by replacing the following code
-         return 0;
-        // END 
+        return ticks / 1000000L;
     }
 
     final static LazyLogger logger = new LazyLogger(Timer.class);
