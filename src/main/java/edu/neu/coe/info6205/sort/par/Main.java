@@ -17,7 +17,7 @@ import java.util.concurrent.ForkJoinPool;
 public class Main {
 
     public static void main(String[] args) {
-        int thread = 2, size = 200000;
+        int thread = 2, size = 20000;
         processArgs(args);
         System.out.println("Size of Array is:"+size);
 
@@ -40,8 +40,8 @@ public class Main {
                 timeList.add(time);
 
 
-                //System.out.println("cutoff：" + (ParSort.cutoff) + "\t\t10-times Time:" + time + "ms");
-                System.out.println(time);
+                System.out.println("cutoff：" + (ParSort.cutoff) + "\t\t10-times Time:" + time + "ms");
+                //System.out.println(time);
 
             }
             try {
